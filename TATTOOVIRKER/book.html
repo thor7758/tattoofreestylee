@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Electrolize&display=swap" rel="stylesheet">
+    <meta name="robots" content="noindex">
+    <title>Freestyle Tattoo</title>
+
+
+</head>
+
+<body>
+
+    <header>
+        <div class="header">
+            <div class="logo">
+                <div class="sectionwrapper">
+                    <div class="logo">
+                        <a href="index.html"><img src="logosort.png" alt="logo"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h1>- TATTOOS</h1>
+    </header>
+
+    <section id="bestil">
+        <a class="tilbage" href="index.html">Tilbage</a>
+        <div class="inputcontainer">
+            <h3>Kontakt os</h3>
+            <form action="/action_page.php">
+                <label for="fname">
+                    Navn
+                </label>
+                <input type="text" id="fname" name="firstname" placeholder="Navn...">
+
+                <label for="lname">
+                    Efternavn
+                </label>
+                <input type="text" id="lname" name="lastname" placeholder="Efternavn...">
+
+                <label for="country">
+                    Bydel
+                </label>
+                <select id="country" name="country">
+                    <option value="australia">Nørrebro</option>
+                    <option value="canada">Vesterbro</option>
+                    <option value="usa">Østerbro</option>
+                </select>
+
+                <label for="subject">
+                    Detaljer
+                </label>
+                <textarea id="subject" name="subject" placeholder="Detaljer ift. tattoo, størrelse og placering." style="height:200px"></textarea>
+
+                <input type="submit" value="Afsend">
+            </form>
+        </div>
+    </section>
+
+
+    <footer>
+        <div class="sectionwrapper">
+            <div class="col">
+                <div class="txt">
+                    <p>Tattoo Co. Freestyle shop <br><br> Gadevej nr. 1 København K 2400 <br><br> Telefon: 12345678 <br><br> E-mail: tattoofreestyle@email.com
+                    </p>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="logo">
+                    <div class="sectionwrapper">
+                        <div class="logo" href="index.html">
+                            <img src="logo.png" alt="logo">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const endpoint = "https://spreadsheets.google.com/feeds/list/1cS6llp6gW6PZ4T4icXxBmAaU0KRpNIkZaHGAjEFxpew/od6/public/values?alt=json";
+
+        const detalje = document.querySelector("#detalje");
+
+        let retter = [];
+        let filterKnap = document.querySelectorAll(".filter");
+        let kategori = "alle";
+
+
+        document.addEventListener("DOMContentLoaded", start);
+
+        function start() {
+            hentData();
+
+            filterKnap.forEach(knap => {
+                knap.addEventListener("click", filtrering);
+            });
+
+        }
+
+        async function hentData() {
+            const response = await fetch(endpoint);
+            retter = await response.json();
+            console.log(retter);
+            visRetter();
+        }
+
+        function filtrering() {
+            filterKnap.forEach(knap => {
+                knap.classList.remove("valgt");
+            });
+
+            this.classList.add("valgt");
+
+            kategori = this.dataset.kategori;
+            console.log(kategori);
+
+            visRetter();
+
+        }
+
+
+        function visRetter() {
+            let container = document.querySelector("#container");
+            let retTemplate = document.querySelector("template");
+            let article = document.querySelector("article");
+
+            container.innerHTML = "";
+
+            retter.feed.entry.forEach(ret => {
+                if (kategori == "alle" || ret.gsx$kategori.$t == kategori) {
+                    let klon = retTemplate.cloneNode(true).content;
+                    klon.querySelector("h2").textContent = ret.gsx$navn.$t;
+                    klon.querySelector("img").src = `imgs/small/${ret.gsx$billede.$t}.jpg`;
+                    klon.querySelector("p").textContent += ret.gsx$kort.$t;
+                    klon.querySelector("p:last-child").textContent += ret.gsx$pris.$t + ",-";
+                    klon.querySelector(".ret").addEventListener("click", () => {
+                        visDetalje(ret);
+                    });
+
+                    container.appendChild(klon);
+                }
+
+            });
+
+        }
+
+        function visDetalje(ret) {
+            detalje.classList.remove("hide");
+            document.body.style['overflow'] = 'hidden';
+            detalje.querySelector("#fjern_detalje").addEventListener("click", () => {
+                detalje.classList.add("hide");
+                document.body.style['overflow'] = 'scroll';
+
+            });
+
+            console.log(ret.gsx$navn.$t);
+
+            detalje.querySelector("h1").textContent = ret.gsx$navn.$t;
+            detalje.querySelector("p").textContent = "Artist: " + ret.gsx$oprindelse.$t;
+            detalje.querySelector("p + p").textContent = "Kategori: " + ret.gsx$kategori.$t;
+            detalje.querySelector("p + p + p").textContent = ret.gsx$lang.$t;
+            detalje.querySelector("p:last-child").textContent = "Pris: " + ret.gsx$pris.$t + ",-";
+            detalje.querySelector("img").src = `imgs/large/${ret.gsx$billede.$t}.jpg`;
+            detalje.querySelector("img").alt = "Tattoo: " + ret.gsx$navn.$t;
+        }
+
+    </script>
+</body>
+
+</html>
